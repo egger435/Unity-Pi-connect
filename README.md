@@ -5,4 +5,9 @@
 ## 实现的功能
 
 1. Unity端可以向树莓派发送控制信息
+
+<p align="center">
+  <img src="image/README/pic1.png" width="600" alt="pic1"/>
+</p>
+
 2. Unity端可以接收树莓派端发送的实时视频流
