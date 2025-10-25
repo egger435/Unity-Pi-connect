@@ -7,15 +7,15 @@
 1. Unity端可以向树莓派发送控制信息
 
 <p align="center">
-  <figure>
-    <img src="image/README/pic1.png" width="600" alt="pic1"/>
+  <figure style="margin:0 auto; text-align:center; width:fit-content;">
+    <img src="image/README/pic1.png" width="600px; max-width:100%; height:auto; display:block;" alt="pic1"/>
     <figcaption style="font-size:0.9em;color:#666;">图1：Unity端发送“hello pi”</figcaption>
   </figure>
 </p>
 
 <p align="center">
-  <figure>
-    <img src="image/README/pic2.png" width="600" alt="pic2"/>
+  <figure style="margin:0 auto; text-align:center; width:fit-content;">
+    <img src="image/README/pic2.png" width="600px; max-width:100%; height:auto; display:block;" alt="pic2"/>
     <figcaption style="font-size:0.9em;color:#666;">图2：树莓派Python端接收到“hello pi”</figcapture>
   </figure>
 </p>
@@ -23,8 +23,8 @@
 2. Unity端可以接收树莓派端发送的实时视频流
 
 <p align="center">
-  <figure>
-    <img src="image/README/pic3.png" width="600" alt="pic3"/>
+  <figure style="margin:0 auto; text-align:center; width:fit-content;">
+    <img src="image/README/pic3.png" width="600px; max-width:100%; height:auto; display:block;" alt="pic3"/>
     <figcaption style="font-size:0.9em;color:#666;">图3：Unity端接收视频流</figcapture>
   </figure>
 </p>
