@@ -6,8 +6,13 @@
 
 1. Unity端可以向树莓派发送控制信息
 
-   ![pic1](image/README/pic1.png)
-    图1：Unity端发送"hello pi"
+    <p align="center">
+      <figure>
+          <img src="image/README/pic1.png"  alt="pic1"/>
+          <figcaption style="text-align:center;font-size:0.9em;color:#666;">图1：Unity端发送"hello pi"</figcaption>
+      </figure>
+    </p>
+
 
    ![pic2](image/README/pic2.png)
     图2: 树莓派端接收到"hello pi"
