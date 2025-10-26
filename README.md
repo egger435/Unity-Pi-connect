@@ -6,15 +6,13 @@
 
 1. Unity端可以向树莓派发送控制信息
 
-    <p>
-        <figure style="margin:0 auto; text-align:center; width:fit-content;">
-            <img src="image/README/pic1.png" style="width:600px; max-width:100%; height:auto; display:block;" alt="pic1"/>
-            <figcaption style="font-size:0.9em;color:#666;margin-top:6px;">图1：Unity端发送“hello pi”</figcaption>
-        </figure>
-    </p>
+    ![pic1](image/README/pic1.png)
+    图1：Unity端发送"hello pi"
 
+    ![pic2](image/README//pic2.png)
+    图2: 树莓派端接收到"hello pi"
 
-1. Unity端可以接收树莓派端发送的实时视频流
+2. Unity端可以接收树莓派端发送的实时视频流
 
 
 
