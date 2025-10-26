@@ -45,7 +45,7 @@
 1. 物联网远程控制与实时监测
 2. 远程视频监控
 3. 遥操作设备
-......
+   ......
 
 ---
 
@@ -59,7 +59,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 ### 用了哪些东西
 
 * ***硬件***
-  
+
 1. 从学长那白嫖的树莓派4b
 2. 随便拿的一根网线 (用于连接树莓派和电脑)
 3. 拼夕夕上买的树莓派摄像头 (应该不是官方的)
@@ -68,7 +68,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 
 1. Unity版本: 2022.3.53f1c1
 2. 树莓派系统: Debian GNU/Linux 12 (bookworm)
-3. 使用的相关Python库: picamera2, numpy
+3. 使用的相关Python库: picamera2
 4. FRP内网穿透小工具: 0.65.0版本
 
 * ***其它***
@@ -80,102 +80,102 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 
 * ***FRP服务器端的配置***
 
-1. **首先下载[FRP](https://github.com/fatedier/frp)**
+1. **首先下载[FRP](https://github.com/fatedier/frp)， 不过我已经放在Unity工程的文件夹下了**
 2. **配置frps.toml**
 
-     ```text
-     bindPort = XXXX  # 服务器与客户端的通信端口, 默认为7000
-     auth.token = "secret_token"  # 你的神奇小密码, 客户端需要一致
+   ```text
+   bindPort = XXXX  # 服务器与客户端的通信端口, 默认为7000
+   auth.token = "secret_token"  # 你的神奇小密码, 客户端需要一致
 
-     # Dashboard配置 (可选, 如果需要的话)
+   # Dashboard配置 (可选, 如果需要的话)
 
-     # 日志配置 (可选, 如果需要的话)
-     ```
+   # 日志配置 (可选, 如果需要的话)
+   ```
 3. **frps, 启动!**
-     *注意: 安全组需要开放上述使用的端口(frp 的服务器端与客户端之间的初始连接使用 TCP 协议)*
-     配置frps为系统服务 (开机自启)
+   *注意: 安全组需要开放上述使用的端口(frp 的服务器端与客户端之间的初始连接使用 TCP 协议)*
+   配置frps为系统服务 (开机自启)
 
-     * 创建服务文件 `nano /etc/systemd/system/frps.service`
-     * 添加内容:
+   * 创建服务文件 `nano /etc/systemd/system/frps.service`
+   * 添加内容:
 
-       ```text
-       [Unit]
-       Description=Frp Server Service
-       After=network.target
+     ```text
+     [Unit]
+     Description=Frp Server Service
+     After=network.target
 
-       [Service]
-       Type=simple
-       Restart=on-failure
-       RestartSec=5s
-       ExecStart=/usr/local/frp/frps -c /usr/local/frp/frps.toml
-       LimitNOFILE=1048576
+     [Service]
+     Type=simple
+     Restart=on-failure
+     RestartSec=5s
+     ExecStart=/usr/local/frp/frps -c /usr/local/frp/frps.toml
+     LimitNOFILE=1048576
 
-       [Install]
-       WantedBy=multi-user.target
-       ```
+     [Install]
+     WantedBy=multi-user.target
+     ```
 
-  * 加载并启动服务:
+* 加载并启动服务:
 
-    ```bash
-    systemctl daemon-reload
-    systemctl enable frps
-    systemctl start frps
-    ```
-  * 检查状态: 输入 `systemctl status frps` 应显示 `active (running)`
+  ```bash
+  systemctl daemon-reload
+  systemctl enable frps
+  systemctl start frps
+  ```
+* 检查状态: 输入 `systemctl status frps` 应显示 `active (running)`
 * ***树莓派FRP客户端的配置***
 
 1. 依旧要先下载FRP, **注意必须要和服务器端版本相同, 都是0.65.0**
 2. **配置frpc.toml**
 
-     ```text
-     serverAddr = "你的ECS公网ip"
-     serverPort = XXXX  # 和服务器上的bindPort一致
-     auth.token = "secret_token"  # 你的神奇小密码, 和frps.toml上的一致
+   ```text
+   serverAddr = "你的ECS公网ip"
+   serverPort = XXXX  # 和服务器上的bindPort一致
+   auth.token = "secret_token"  # 你的神奇小密码, 和frps.toml上的一致
 
-     [[proxies]]
-     name = "随便什么名字都行"  # 我取的是test_udp
-     type = "udp"
-     localIP = "127.0.0.1"
-     localPort = XXXXX  # 本地端口, 需要跟之后的python代码中监听的端口一致
-     remotePort = XXXXX  # 云端暴露的公网端口(需要ECS安全组开放)
-     ```
+   [[proxies]]
+   name = "随便什么名字都行"  # 我取的是test_udp
+   type = "udp"
+   localIP = "127.0.0.1"
+   localPort = XXXXX  # 本地端口, 需要跟之后的python代码中监听的端口一致
+   remotePort = XXXXX  # 云端暴露的公网端口(需要ECS安全组开放)
+   ```
 3. **frpc, 启动!**
-     配置frpc为系统服务 (开机自启)
+   配置frpc为系统服务 (开机自启)
 
-     * 创建服务文件 `nano /etc/systemd/system/frpc.service`
-     * 添加内容:
+   * 创建服务文件 `nano /etc/systemd/system/frpc.service`
+   * 添加内容:
 
-       ```text
-       [Unit]
-       Description=Frp Client Service
-       After=network.target
-       Wants=network.target
+     ```text
+     [Unit]
+     Description=Frp Client Service
+     After=network.target
+     Wants=network.target
 
-       [Service]
-       Type=simple
-       Restart=on-failure
-       RestartSec=5s
-       ExecStart=/usr/local/frp/frpc -c /usr/local/frp/frpc.toml
+     [Service]
+     Type=simple
+     Restart=on-failure
+     RestartSec=5s
+     ExecStart=/usr/local/frp/frpc -c /usr/local/frp/frpc.toml
 
-       [Install]
-       WantedBy=multi-user.target
-       ```
+     [Install]
+     WantedBy=multi-user.target
+     ```
 
-  * 加载并启动服务:
+* 加载并启动服务:
 
-    ```bash
-    systemctl daemon-reload
-    systemctl enable frpc
-    systemctl start frpc
-    ```
-  * 检查状态: 输入 `systemctl status frpc` 应显示 `active (running)`
+  ```bash
+  systemctl daemon-reload
+  systemctl enable frpc
+  systemctl start frpc
+  ```
+* 检查状态: 输入 `systemctl status frpc` 应显示 `active (running)`
 * ***不用那么麻烦的办法***
   为了让Unity端能够接收到树莓派发送过来的视频流数据, 因此也需要在运行着Unity的设备上部署frp客户端
   但是我已经写了一个批处理文件 `frpc_setup.bat`在windows上部署frpc了, 不过有些地方需要注意:
 
   1. 安装frp的版本和安装位置, 安装在Unity可执行文件的同目录下
      ```bash
-     set "FRP_VERSION=0.65.0"       
+     set "FRP_VERSION=0.65.0"     
      set "FRP_DIR=%~dp0frp_%FRP_VERSION%"
      ```
   2. frpc.toml配置文件信息的写入
@@ -217,7 +217,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 
     [Header("视频流接收")]
     public int MSG_RECEIVE_PORT  // Unity监听frp服务器端口, 和本机frpc.toml中的localPort一致
-    public RawImage display;       
+    public RawImage display;     
     private Texture2D texture;
 
     // ...existing code...
@@ -251,7 +251,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 
   1. 将一帧视频数据分成两部分, 帧头和视频帧数据
 
-    <p align="center">
+  <p align="center">
       <a>
         <img src="image/README/pic4.png">
         <br>
@@ -262,23 +262,22 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
     </p>
 
   2. 将一整个帧数据分成小的帧分片, 每个分片1024字节
-
 * **Unity端接收视频流**
-  
-  1. 在`ReceiveUDPdata`子线程中先将接收到的数据放入`dataQueue`中, 等待主线程处理
-  2. 主线程处理`dataQueue`中的数据, 分为一下步骤
-    * *帧头检测*
-      为实现Unity接收和树莓派发送的帧同步, 需要根据帧头标识判断当前接收到的是否为帧头.
-      如果接收到的不是帧头, 而是1024字节的帧分片的话, 则丢弃这个数据, 直到接收到的是8字节的帧头.
-    * *接收帧分片并拼接帧数据*
-      当接收到帧头后, 记录预测帧长. 开始接收当前帧数据, 将接收到的帧分片数据拼接并放入帧处理缓存中.
-    * *渲染当前帧*
-      当缓存中的帧长达到预测帧长时候, 则表示这一帧接收完成, 开始渲染当前帧.
 
+  1. 在 `ReceiveUDPdata`子线程中先将接收到的数据放入 `dataQueue`中, 等待主线程处理
+  2. 主线程处理 `dataQueue`中的数据, 分为一下步骤
+
+  * *帧头检测*
+    为实现Unity接收和树莓派发送的帧同步, 需要根据帧头标识判断当前接收到的是否为帧头.
+    如果接收到的不是帧头, 而是1024字节的帧分片的话, 则丢弃这个数据, 直到接收到的是8字节的帧头.
+  * *接收帧分片并拼接帧数据*
+    当接收到帧头后, 记录预测帧长. 开始接收当前帧数据, 将接收到的帧分片数据拼接并放入帧处理缓存中.
+  * *渲染当前帧*
+    当缓存中的帧长达到预测帧长时候, 则表示这一帧接收完成, 开始渲染当前帧.
 * **遇到的小问题**
   最初进行视频流传输测试的时候, 发现视频画面中的红色和蓝色反了, 并且整个画面是上下左右都颠倒的
 
-    <p align="center">
+  <p align="center">
       <a>
         <img width="600" src="image/README/pic5.png">
         <br>
@@ -287,12 +286,12 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
         <sub>红蓝反相, 画面颠倒</sub>
       </a>
     </p>
-  
-  于是我怀疑是树莓派端发送的字节流和Unity端接收的字节流顺序是反的. 
-  也就是说本来是第一个像素点的RGB数据在Unity端解码后变成了最后一个像素点的BGR数据了.
-  为了解决这个问题, 我修改了树莓派上的`video_stream.py`的代码:
 
-  ``` python
+  于是我怀疑是树莓派端发送的字节流和Unity端接收的字节流顺序是反的.
+  也就是说本来是第一个像素点的RGB数据在Unity端解码后变成了最后一个像素点的BGR数据了.
+  为了解决这个问题, 我修改了树莓派上的 `video_stream.py`的代码:
+
+  ```python
   # ...existing code...
 
   array = picam.capture_array()
@@ -303,14 +302,14 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 
   同时我在Unity Editor中用于显示视频流的RawImage组件的x轴缩放修改为-1
 
-    <p align="center">
+  <p align="center">
       <a>
         <img width="600" src="image/README/pic6.png">
         <br>
         <b>图6: 修改RawImage的x轴缩放</b>
       </a>
     </p>
- 
+
   这样一来就解决了颜色反相和画面颠倒的问题了.
 
 ---
