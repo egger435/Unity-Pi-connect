@@ -6,15 +6,13 @@
 
 1. Unity端可以向树莓派发送控制信息
 
-    ![pic1](image/README/pic1.png)
+   ![pic1](image/README/pic1.png)
     图1：Unity端发送"hello pi"
 
-    ![pic2](image/README//pic2.png)
+   ![pic2](image/README/pic2.png)
     图2: 树莓派端接收到"hello pi"
 
 2. Unity端可以接收树莓派端发送的实时视频流
-
-
 
 ## 使用场景
 
