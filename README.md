@@ -38,6 +38,7 @@
 ## 应用场景
 
 最近在做一个远程小车的项目, 控制端采用Unity制作
+
 这个项目可以先为此打下技术基础, 并在此基础上进行后续开发
 
 ### 还有其它地方可以用到
@@ -45,6 +46,7 @@
 1. 物联网远程控制与实时监测
 2. 远程视频监控
 3. 遥操作设备
+   
    ......
 
 ---
@@ -52,8 +54,11 @@
 ## 如何实现的
 
 简单来说就是利用UDP协议无连接, 低时延的特点将数据进行传输
+
 然后为了实现远程控制, 需要让Unity和树莓派都作为frp客户端, 同时在阿里云ECS服务器上部署frp服务器端
+
 Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再转发给部署有frpc的树莓派端
+
 树莓派端的视频流数据发送给Unity也是同理
 
 ### 用了哪些东西
@@ -92,6 +97,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
    # 日志配置 (可选, 如果需要的话)
    ```
 3. **frps, 启动!**
+   
    *注意: 安全组需要开放上述使用的端口(frp 的服务器端与客户端之间的初始连接使用 TCP 协议)*
    配置frps为系统服务 (开机自启)
 
@@ -114,14 +120,16 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
      WantedBy=multi-user.target
      ```
 
-* 加载并启动服务:
+   * 加载并启动服务:
 
-  ```bash
-  systemctl daemon-reload
-  systemctl enable frps
-  systemctl start frps
-  ```
-* 检查状态: 输入 `systemctl status frps` 应显示 `active (running)`
+     ```bash
+     systemctl daemon-reload
+     systemctl enable frps
+     systemctl start frps
+     ```
+     
+   * 检查状态: 输入 `systemctl status frps` 应显示 `active (running)`
+
 * ***树莓派FRP客户端的配置***
 
 1. 依旧要先下载FRP, **注意必须要和服务器端版本相同, 都是0.65.0**
@@ -140,6 +148,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
    remotePort = XXXXX  # 云端暴露的公网端口(需要ECS安全组开放)
    ```
 3. **frpc, 启动!**
+   
    配置frpc为系统服务 (开机自启)
 
    * 创建服务文件 `nano /etc/systemd/system/frpc.service`
@@ -161,24 +170,26 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
      WantedBy=multi-user.target
      ```
 
-* 加载并启动服务:
+   * 加载并启动服务:
 
-  ```bash
-  systemctl daemon-reload
-  systemctl enable frpc
-  systemctl start frpc
-  ```
-* 检查状态: 输入 `systemctl status frpc` 应显示 `active (running)`
+     ```bash
+     systemctl daemon-reload
+     systemctl enable frpc
+     systemctl start frpc
+     ```
+   * 检查状态: 输入 `systemctl status frpc` 应显示 `active (running)`
+
 * ***不用那么麻烦的办法***
+  
   为了让Unity端能够接收到树莓派发送过来的视频流数据, 因此也需要在运行着Unity的设备上部署frp客户端
   但是我已经写了一个批处理文件 `frpc_setup.bat`在windows上部署frpc了, 不过有些地方需要注意:
 
-  1. 安装frp的版本和安装位置, 安装在Unity可执行文件的同目录下
+1. 安装frp的版本和安装位置, 安装在Unity可执行文件的同目录下
      ```bash
      set "FRP_VERSION=0.65.0"     
      set "FRP_DIR=%~dp0frp_%FRP_VERSION%"
      ```
-  2. frpc.toml配置文件信息的写入
+2. frpc.toml配置文件信息的写入
      ```bash
      echo serverAddr = "你的公网ip" >> "%INI_FILE%"
      echo serverPort = XXXX >> "%INI_FILE%"  # 和服务器上的bindPort一致
@@ -192,7 +203,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
      echo localPort = XXXXX >> "%INI_FILE%"  # 本地端口, 需要跟之后的C#代码中监听的端口一致
      echo remotePort = XXXXX >> "%INI_FILE%"  # 云端暴露的公网端口(需要ECS安全组开放)
      ```
-  3. 双击 `frpc_setup.bat`即可在电脑上自动配置frpc了
+3. 双击 `frpc_setup.bat`即可在电脑上自动配置frpc了
 
 ### 代码中需要注意的地方
 
@@ -223,6 +234,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
     // ...existing code...
     ```
   * 以上属性均为 `public`, 所以要在Unity Editor的inspector中修改
+
 * ***树莓派端的Python代码***
 
   * 在 `UDP_Test.py`中需要配置树莓派端的监听端口, 我这里默认 `12345`
@@ -249,7 +261,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 
 * **树莓派端发送视频流**
 
-  1. 将一帧视频数据分成两部分, 帧头和视频帧数据
+1. 将一帧视频数据分成两部分, 帧头和视频帧数据
 
   <p align="center">
       <a>
@@ -261,20 +273,29 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
       </a>
     </p>
 
-  2. 将一整个帧数据分成小的帧分片, 每个分片1024字节
+2. 将一整个帧数据分成小的帧分片, 每个分片1024字节
+
 * **Unity端接收视频流**
 
-  1. 在 `ReceiveUDPdata`子线程中先将接收到的数据放入 `dataQueue`中, 等待主线程处理
-  2. 主线程处理 `dataQueue`中的数据, 分为一下步骤
+1. 在 `ReceiveUDPdata`子线程中先将接收到的数据放入 `dataQueue`中, 等待主线程处理
+2. 主线程处理 `dataQueue`中的数据, 分为以下步骤
 
   * *帧头检测*
+    
     为实现Unity接收和树莓派发送的帧同步, 需要根据帧头标识判断当前接收到的是否为帧头.
+
     如果接收到的不是帧头, 而是1024字节的帧分片的话, 则丢弃这个数据, 直到接收到的是8字节的帧头.
+    
   * *接收帧分片并拼接帧数据*
+    
     当接收到帧头后, 记录预测帧长. 开始接收当前帧数据, 将接收到的帧分片数据拼接并放入帧处理缓存中.
+    
   * *渲染当前帧*
+    
     当缓存中的帧长达到预测帧长时候, 则表示这一帧接收完成, 开始渲染当前帧.
+   
 * **遇到的小问题**
+  
   最初进行视频流传输测试的时候, 发现视频画面中的红色和蓝色反了, 并且整个画面是上下左右都颠倒的
 
   <p align="center">
