@@ -99,6 +99,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 3. **frps, 启动!**
    
    *注意: 安全组需要开放上述使用的端口(frp 的服务器端与客户端之间的初始连接使用 TCP 协议)*
+   
    配置frps为系统服务 (开机自启)
 
    * 创建服务文件 `nano /etc/systemd/system/frps.service`
