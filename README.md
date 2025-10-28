@@ -227,7 +227,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
     // ...existing code...
 
     [Header("视频流接收")]
-    public int MSG_RECEIVE_PORT  // Unity监听frp服务器端口, 和本机frpc.toml中的localPort一致
+    public int MSG_RECEIVE_PORT;  // Unity监听frp服务器端口, 和本机frpc.toml中的localPort一致
     public RawImage display;     
     private Texture2D texture;
 
