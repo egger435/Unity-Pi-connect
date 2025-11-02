@@ -1,0 +1,9 @@
+# Unity Editor生成的文件
+/UnityClient/Logs/
+/UnityClient/obj/
+/UnityClient/UserSettings/
+
+# Visual Studio生成的文件
+/UnityClient/.vsconfig
+/UnityClient/*.csproj
+/UnityClient/*.sln
