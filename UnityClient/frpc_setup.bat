@@ -39,7 +39,7 @@ echo Generating configuration file...
 set "INI_FILE=%FRP_DIR%\frp_%FRP_VERSION%_windows_amd64\frpc.toml"
 type nul > "%INI_FILE%"
 echo serverAddr = "服务器公网ip" >> "%INI_FILE%"
-echo serverPort = xxxx >> "%INI_FILE%"  
+echo serverPort = xxxx >> "%INI_FILE%"
 echo auth.token = "神奇小密码" >> "%INI_FILE%"
 
 echo. >> "%INI_FILE%"
@@ -47,13 +47,12 @@ echo [[proxies]] >> "%INI_FILE%"
 echo name = "udp-receive" >> "%INI_FILE%"
 echo type = "udp" >> "%INI_FILE%"
 echo localIP = "127.0.0.1" >> "%INI_FILE%"
-echo localPort = xxxxx >> "%INI_FILE%"
+echo localPort = xxxxx  >> "%INI_FILE%"
 echo remotePort = xxxxx >> "%INI_FILE%"
 
 echo Generation completed: %INI_FILE%
 
 echo Starting FRP client...
-type nul > "frpcflag"
 cd /d "%FRP_DIR%\frp_%FRP_VERSION%_windows_amd64"
 .\frpc.exe -c frpc.toml
 

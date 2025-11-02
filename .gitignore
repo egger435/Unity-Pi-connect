@@ -2,8 +2,13 @@
 /UnityClient/Logs/
 /UnityClient/obj/
 /UnityClient/UserSettings/
+/UnityClient/Library
 
 # Visual Studio生成的文件
 /UnityClient/.vsconfig
 /UnityClient/*.csproj
 /UnityClient/*.sln
+
+# 本地配置文件
+_frpc_setup.bat
+_frpc.toml

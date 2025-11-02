@@ -2,9 +2,9 @@ serverAddr = "服务器公网ip"
 serverPort = xxxx 
 auth.token = "神奇小密码" 
  
-[[proxies]] ip
+[[proxies]]
 name = "udp-receive" 
 type = "udp" 
 localIP = "127.0.0.1" 
-localPort = 本地监听端口 
-remotePort = 云端暴露的公网端口 
+localPort = xxxxx 
+remotePort = xxxxx
