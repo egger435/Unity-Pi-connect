@@ -10,8 +10,11 @@ using System.Threading;
 
 public class ReceiveCamData : MonoBehaviour
 {
+    [Header("配置文本组件")]
+    public Text MsgResvPortText;
+
     [Header("视频流接收")]
-    public int MSG_RECEIVE_PORT; // Unity监听frp服务器端口
+    private int MSG_RECEIVE_PORT = 00000; // Unity监听frp服务器端口
     public RawImage display;             
     private Texture2D texture;
 
@@ -39,9 +42,6 @@ public class ReceiveCamData : MonoBehaviour
 
     void Start()
     {
-        logText.text += "\n" + "建立UDP接收客户端...";
-        udpReceiveClient = new UdpClient(MSG_RECEIVE_PORT);
-
         // 贴图初始化
         texture = new Texture2D(128, 64, TextureFormat.RGB24, false);
         texture.Apply();
@@ -90,6 +90,22 @@ public class ReceiveCamData : MonoBehaviour
         isThreadRunning = false;
         recvThread?.Join(1000);
         udpReceiveClient?.Close();
+    }
+
+    // 配置确认
+    public void ResvSetupConfirm()
+    {
+        if (MsgResvPortText == null)
+            return;
+
+        MSG_RECEIVE_PORT = int.Parse(MsgResvPortText.text);
+    }
+
+    // 建立接收客户端
+    public void SetupStart()
+    {
+        logText.text += "\n" + "建立UDP接收客户端...";
+        udpReceiveClient = new UdpClient(MSG_RECEIVE_PORT);
     }
 
     // 绑定按钮事件，开始接收视频流

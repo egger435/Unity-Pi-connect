@@ -3,6 +3,8 @@
 /UnityClient/obj/
 /UnityClient/UserSettings/
 /UnityClient/Library
+/UnityClient/Temp
+/UnityClient/.vs
 
 # Visual Studio生成的文件
 /UnityClient/.vsconfig

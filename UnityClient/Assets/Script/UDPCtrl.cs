@@ -10,14 +10,17 @@ using System.IO;
 
 public class UDPCtrl : MonoBehaviour
 {
-    [Header("FRP服务器IP")]
-    public string serverIP;
+    [Header("配置文本组件")]
+    public Text serverIPText;
+    public Text MsgSendPortText;
+    public Text frpSetupNameText;
 
-    [Header("UDP消息发送")]
-    public int MSG_SEND_PORT;  // unity向frp服务器发送消息端口
+    private string serverIP = "0.0.0.0";
+
+    private int MSG_SEND_PORT = 00000;  // unity向frp服务器发送消息端口
     private UdpClient udpSendClient;
 
-    private readonly string frpSetupName = "frpc_setup.bat";
+    private string frpSetupName = "frpc_setup.bat";
 
     [Header("UI控件")]
     public Text sendText;
@@ -28,9 +31,17 @@ public class UDPCtrl : MonoBehaviour
 
     void Start()
     {
-        // udp发送客户端初始化
-        logText.text += "\n" + "正在建立UDP通信...";
-        SendClientInit();
+
+    }
+
+    // 配置确认
+    public void SendSetupConfirm()
+    {
+        if (serverIPText == null || MsgSendPortText == null)
+            return;
+        serverIP = serverIPText.text;
+        MSG_SEND_PORT = int.Parse(MsgSendPortText.text);
+        frpSetupName = frpSetupNameText.text;
     }
 
     // 启动frp客户端bat文件
@@ -80,8 +91,9 @@ public class UDPCtrl : MonoBehaviour
     }
 
     // udp发送客户端初始化
-    private void SendClientInit()
+    public void SendClientInit()
     {
+        logText.text += "\n" + "正在建立UDP通信...";
         try
         {
             IPAddress[] addresses = Dns.GetHostAddresses(serverIP);
