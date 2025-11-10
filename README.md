@@ -71,7 +71,7 @@ Unity端发送的UDP数据会先发送给frp服务器, 然后通过服务器再�
 
 * ***软件***
 
-1. Unity版本: 2022.3.53f1c1
+1. Unity版本: 2022.3.62f2c1
 2. 树莓派系统: Debian GNU/Linux 12 (bookworm)
 3. 使用的相关Python库: picamera2
 4. FRP内网穿透小工具: 0.65.0版本
