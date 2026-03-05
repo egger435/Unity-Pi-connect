@@ -15,9 +15,9 @@ public class UDPCtrl : MonoBehaviour
     public Text MsgSendPortText;
     public Text frpSetupNameText;
 
-    private string serverIP = "0.0.0.0";
+    private string serverIP = "服务器公网IP地址";
 
-    private int MSG_SEND_PORT = 00000;  // unity向frp服务器发送消息端口
+    private int MSG_SEND_PORT = 12300;  // unity向frp服务器发送消息端口
     private UdpClient udpSendClient;
 
     private string frpSetupName = "frpc_setup.bat";

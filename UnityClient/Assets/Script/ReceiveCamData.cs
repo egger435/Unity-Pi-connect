@@ -7,6 +7,16 @@ using UnityEngine.UI;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.IO;
+
+// 帧缓冲类，用于存储分片数据和帧信息
+class FrameBuffer
+{
+    public int totalChunks;
+    public byte[][] chunks;
+    public int receivedChunks;
+    public float createTime;
+}
 
 public class ReceiveCamData : MonoBehaviour
 {
@@ -14,15 +24,14 @@ public class ReceiveCamData : MonoBehaviour
     public Text MsgResvPortText;
 
     [Header("视频流接收")]
-    private int MSG_RECEIVE_PORT = 00000; // Unity监听frp服务器端口
+    private int MSG_RECEIVE_PORT = 13300; // Unity监听frp服务器端口, 与frpc.toml中的localPort一致
     public RawImage display;             
     private Texture2D texture;
 
-    private UdpClient udpReceiveClient;  // 视频流接收UDP客户端
-    private IPEndPoint remoteIp = null;  
-    private const uint MAGIC_NUMBER = 0xEAEAEFEF;  // 帧头标识
-    private int expectedLength = 0;      // 预测帧长
-    private byte[] buffer = new byte[0]; // 帧处理缓存
+    private UdpClient udpReceiveClient;
+    private IPEndPoint remoteIp = null;
+    private Dictionary<int, FrameBuffer> frameBuffers = new Dictionary<int, FrameBuffer>();  // 存储帧数据字典
+    private float frameTimeout = 1f;  // 帧数据接收超时时间1s
     private ConcurrentQueue<byte[]> dataQueue = new ConcurrentQueue<byte[]>(); // 用于存储接收到的数据片段的线程安全队列
     private Thread recvThread;
 
@@ -43,8 +52,10 @@ public class ReceiveCamData : MonoBehaviour
     void Start()
     {
         // 贴图初始化
-        texture = new Texture2D(128, 64, TextureFormat.RGB24, false);
-        texture.Apply();
+        texture = new Texture2D(128, 64, TextureFormat.RGB24, false, true);
+        texture.filterMode = FilterMode.Point;
+        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.Apply(false);
         display.texture = texture;
 
         // 帧率显示初始化
@@ -106,6 +117,7 @@ public class ReceiveCamData : MonoBehaviour
     {
         logText.text += "\n" + "建立UDP接收客户端...";
         udpReceiveClient = new UdpClient(MSG_RECEIVE_PORT);
+        udpReceiveClient.Client.ReceiveBufferSize = 1024 * 1024;
     }
 
     // 绑定按钮事件，开始接收视频流
@@ -121,6 +133,7 @@ public class ReceiveCamData : MonoBehaviour
         // 启动接收线程
         recvThread = new Thread(ReceiveUDPdata);
         recvThread.IsBackground = true;
+        recvThread.Priority = System.Threading.ThreadPriority.AboveNormal;
         recvThread.Start();
     }
 
@@ -145,53 +158,76 @@ public class ReceiveCamData : MonoBehaviour
     }
 
     // 处理接收到的数据
-    private void ProcessReceiveData(byte[] data)
+    private void ProcessReceiveData(byte[] packet)
     {
         try
         {
-            if (expectedLength == 0 && data.Length >= 8)  // 检测帧头
+            if (packet.Length < 8) return;
+
+            // 解析帧ID、总分片数和分片ID
+            int frameID = (packet[0] << 24) | (packet[1] << 16) | (packet[2] << 8) | packet[3];
+            int totalChunks = (packet[4] << 8) | packet[5];
+            int chunkIndex = (packet[6] << 8) | packet[7];
+
+            // 提取分片数据
+            byte[] data = new byte[packet.Length - 8];
+            Array.Copy(packet, 8, data, 0, data.Length);
+
+            // 删去超时帧数据
+            List<int> toDelete = new List<int>();
+            foreach (var kvp in frameBuffers)
             {
-                uint magic = BitConverter.ToUInt32(data, 0);
-                if (magic == MAGIC_NUMBER)
+                if (Time.realtimeSinceStartup - kvp.Value.createTime > frameTimeout)
                 {
-                    expectedLength = BitConverter.ToInt32(data, 4);
-                    buffer = new byte[0];
-                    //Debug.Log($"检测到帧头，预期帧长度: {expectedLength} 字节");
-                }
-                else
-                {
-                    //Debug.LogWarning($"无效帧头: {magic}, 丢弃 {data.Length} 字节");
+                    toDelete.Add(kvp.Key);
                 }
             }
-            else if (expectedLength > 0)  // 拼接帧数据
+            foreach (int id in toDelete)
             {
-                buffer = Combine(buffer, data);
-                //Debug.Log($"当前缓冲大小: {buffer.Length} 字节");
+                frameBuffers.Remove(id);
+            }
 
-                // 帧数据完整后渲染
-                if (buffer.Length >= expectedLength)
+            // 若是新的帧则创建帧缓冲
+            if (!frameBuffers.ContainsKey(frameID))
+            {
+                frameBuffers[frameID] = new FrameBuffer
                 {
-                    texture.LoadRawTextureData(buffer);
-                    texture.Apply();
-                    //Debug.Log($"完整帧接收完成，显示图像，大小: {buffer.Length} 字节");
-                    expectedLength = 0;
-                    buffer = new byte[0];
-                    frameCount++;
+                    totalChunks = totalChunks,
+                    chunks = new byte[totalChunks][],
+                    receivedChunks = 0,
+                    createTime = Time.realtimeSinceStartup
+                };
+            }
+
+            // 处理分片数据
+            FrameBuffer fb = frameBuffers[frameID];
+            if (chunkIndex < 0 || chunkIndex >= totalChunks) return;
+
+            if (fb.chunks[chunkIndex] != null) return;  // 已经接收过该分片
+
+            fb.chunks[chunkIndex] = data;
+            fb.receivedChunks++;
+
+            // 已经接收完一帧数据, 进行合并和解码
+            if (fb.receivedChunks == fb.totalChunks)
+            {
+                MemoryStream ms = new MemoryStream();
+                for (int i = 0; i < totalChunks; i++)
+                {
+                    ms.Write(fb.chunks[i], 0, fb.chunks[i].Length);
                 }
+
+                byte[] fullFrame = ms.ToArray();
+                frameBuffers.Remove(frameID);
+
+                texture.LoadRawTextureData(fullFrame);
+                texture.Apply(false);
+                frameCount++;
             }
         }
         catch (Exception e)
         {
             Debug.LogError($"数据处理错误:{e.Message}");
         }
-    }
-
-    // 字节数组合并
-    private byte[] Combine(byte[] a, byte[] b)
-    {
-        byte[] c = new byte[a.Length + b.Length];
-        Buffer.BlockCopy(a, 0, c, 0, a.Length);
-        Buffer.BlockCopy(b, 0, c, a.Length, b.Length);
-        return c;
     }
 }

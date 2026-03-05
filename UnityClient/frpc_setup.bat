@@ -47,8 +47,8 @@ echo [[proxies]] >> "%INI_FILE%"
 echo name = "udp-receive" >> "%INI_FILE%"
 echo type = "udp" >> "%INI_FILE%"
 echo localIP = "127.0.0.1" >> "%INI_FILE%"
-echo localPort = xxxxx  >> "%INI_FILE%"
-echo remotePort = xxxxx >> "%INI_FILE%"
+echo localPort = xxxxx  >> "%INI_FILE%"  # 本地端口, 需要跟之后的C#代码中监听视频流的端口一致
+echo remotePort = xxxxx >> "%INI_FILE%"  # 云端暴露的公网端口(需要ECS安全组开放)
 
 echo Generation completed: %INI_FILE%
 
