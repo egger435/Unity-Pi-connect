@@ -52,7 +52,7 @@ public class ReceiveCamData : MonoBehaviour
     void Start()
     {
         // Ã˘Õº≥ı ºªØ
-        texture = new Texture2D(128, 64, TextureFormat.RGB24, false, true);
+        texture = new Texture2D(1024, 512, TextureFormat.RGB24, false, true);
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
         texture.Apply(false);
@@ -220,7 +220,7 @@ public class ReceiveCamData : MonoBehaviour
                 byte[] fullFrame = ms.ToArray();
                 frameBuffers.Remove(frameID);
 
-                texture.LoadRawTextureData(fullFrame);
+                texture.LoadImage(fullFrame);
                 texture.Apply(false);
                 frameCount++;
             }
