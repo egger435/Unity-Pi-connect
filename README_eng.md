@@ -287,7 +287,7 @@ It is very the same for Raspberry to sent video stream data to Unity.
 1. Data received are first put into `dataQueue` in the child thread `ReceiveUDPdata`, waiting for further process of the main thread
 2. There are several steps for main thread to process data in `dataQueue`
 
-   * *Parse data from frame slices£¨frame ID£¬frame gross slice number and slice ID£©*
+   * *Parse data from frame slices (frame ID, frame gross slice number, slice ID)*
     
    * *Extract slice data*
     
